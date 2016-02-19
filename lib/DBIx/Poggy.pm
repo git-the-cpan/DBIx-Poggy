@@ -3,7 +3,7 @@ use warnings;
 use v5.16;
 
 package DBIx::Poggy;
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 =head1 NAME
 
@@ -170,8 +170,11 @@ sub take {
     }
 
     my $dbh = shift @{ $self->{free} };
-    $dbh->{private_poggy_state}{auto_release} = $args{auto};
-    return $dbh if !wantarray || $args{auto};
+    if ( $args{auto} ) {
+        $dbh->{private_poggy_state}{release_to} = $self;
+        return $dbh;
+    }
+    return $dbh unless wantarray;
     return ( $dbh, guard { $self->release($dbh) } );
 }
 
